@@ -34,18 +34,50 @@ class Matrix:
 class Agent:
     def __init__(self, starting_pos):
         self.pos = starting_pos
+        self.valid_move = []
+        self.action = None
+        self.possible_move = ["up", "down", "left", "right"]
 
-    def up(self):
-        self.pos -= (1,0)
+    def get_adjacent_positions(self):
+        r, c = self.pos
 
-    def down(self):
-        self.pos += (1,0)
+        # Filtrer les positions valides
+        if self.pos - (1,0) != OBSTACLE:
+            self.valid_move.append("up")
+        if self.pos + (1,0) != OBSTACLE:
+            self.valid_move.append("down")
+        if self.pos - (0,1) != OBSTACLE:
+            self.valid_move.append("left")
+        if self.pos + (0,1) != OBSTACLE:
+            self.valid_move.append("right")
 
-    def left(self):
-        self.pos -= (0,1)
+        return self.valid_move
 
-    def right(self):
-        self.pos += (0, 1)
+    def decide_action(self):
+        if self.pos - (1,0) == REWARD:
+            self.action = "up"
+        elif self.pos + (1,0) == REWARD:
+            self.action = "down"
+        elif self.pos - (0,1) == REWARD:
+            self.action = "left"
+        elif self.pos + (0,1) == REWARD:
+            self.action = "right"
+        else:
+            self.action = random.choice(self.possible_move)
+            while self.action not in self.valid_move:
+                self.action = random.choice(self.possible_move)
+
+        return self.action
+
+    def move(self, action):
+        if action == "up":
+            self.pos -= (1,0)
+        if action == "down":
+            self.pos += (1,0)
+        if action == "left":
+            self.pos -= (0,1)
+        if action == "right":
+            self.pos += (0, 1)
 
 # Création de la grille test avec une récompense et quelques obstacles
 def create_grid():
