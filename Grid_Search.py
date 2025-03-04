@@ -1,5 +1,6 @@
 # Librairies
 import random
+import keyboard
 
 # Dimension de la grille
 GRID_SIZE = 5
@@ -17,7 +18,7 @@ obstacle_pos = []
 # Création de la matrice tableau
 class Matrix:
     # Initialisation d'une variable de type Matrix
-    def __init__(self, dimension=5):
+    def __init__(self, dimension):
         self.N = dimension
         self.m = [[EMPTY for i in range(dimension)] for j in  range(dimension)]
 
@@ -35,53 +36,95 @@ class Agent:
     def __init__(self, starting_pos):
         self.pos = starting_pos
         self.valid_move = []
-        self.action = None
-        self.possible_move = ["up", "down", "left", "right"]
 
+    # Fonction donnant les cases valides internes à la grille (exclus le débordement mais pas les cases à obstacles)
     def get_adjacent_positions(self):
         r, c = self.pos
 
-        # Filtrer les positions valides
-        if self.pos - (1,0) != OBSTACLE:
-            self.valid_move.append("up")
-        if self.pos + (1,0) != OBSTACLE:
-            self.valid_move.append("down")
-        if self.pos - (0,1) != OBSTACLE:
-            self.valid_move.append("left")
-        if self.pos + (0,1) != OBSTACLE:
-            self.valid_move.append("right")
+        moves = {"up": (r - 1, c),
+                 "down": (r + 1, c),
+                 "left": (r, c - 1),
+                 "right": (r, c + 1)}
+
+        # Filtrer les déplacements valides
+        self.valid_move = {direction: pos for direction, pos in moves.items()
+                           if 0 <= pos[0] < GRID_SIZE and 0 <= pos[1] < GRID_SIZE}
+
+        # # Filtrer les positions valides
+        # if self.pos - (1,0) != OBSTACLE:
+        #     self.valid_move.append("up")
+        # if self.pos + (1,0) != OBSTACLE:
+        #     self.valid_move.append("down")
+        # if self.pos - (0,1) != OBSTACLE:
+        #     self.valid_move.append("left")
+        # if self.pos + (0,1) != OBSTACLE:
+        #     self.valid_move.append("right")
 
         return self.valid_move
 
-    def decide_action(self):
-        if self.pos - (1,0) == REWARD:
-            self.action = "up"
-        elif self.pos + (1,0) == REWARD:
-            self.action = "down"
-        elif self.pos - (0,1) == REWARD:
-            self.action = "left"
-        elif self.pos + (0,1) == REWARD:
-            self.action = "right"
-        else:
-            self.action = random.choice(self.possible_move)
-            while self.action not in self.valid_move:
-                self.action = random.choice(self.possible_move)
+    # Fonction renvoyant la présence ou non d'obstacles et de récompense sur les ces adjacentes
+    def perceive(self, grid):
+        perceptions = {}
+        adjacent_positions = self.get_adjacent_positions()
 
-        return self.action
+        for direction, pos in adjacent_positions.items():
+            perceptions[direction] = grid[pos[0]][pos[1]]
+
+        return perceptions
+
+    # Fonction décidant du déplacement en fonction des obstacles et de la récompense
+    def decide_action(self, perceptions):
+        for direction, cell in perceptions.items():
+            if cell == REWARD:
+                return direction
+
+        available_moves = [direction for direction, cell in perceptions.items()
+                           if cell == EMPTY]
+
+        if available_moves:
+            return random.choice(available_moves)
+        else:
+            return None
+
+        # if self.pos - (1,0) == REWARD:
+        #     self.action = "up"
+        # elif self.pos + (1,0) == REWARD:
+        #     self.action = "down"
+        # elif self.pos - (0,1) == REWARD:
+        #     self.action = "left"
+        # elif self.pos + (0,1) == REWARD:
+        #     self.action = "right"
+        # else:
+        #     self.action = random.choice(self.possible_move)
+        #     while self.action not in self.valid_move:
+        #         self.action = random.choice(self.possible_move)
 
     def move(self, action):
+        if action is None:
+            return
+
+        r, c = self.pos
         if action == "up":
-            self.pos -= (1,0)
+            self.pos = (r - 1, c)
         if action == "down":
-            self.pos += (1,0)
+            self.pos = (r + 1, c)
         if action == "left":
-            self.pos -= (0,1)
+            self.pos = (r, c - 1)
         if action == "right":
-            self.pos += (0, 1)
+            self.pos = (r, c + 1)
+
+        # if action == "up":
+        #     self.pos -= (1,0)
+        # if action == "down":
+        #     self.pos += (1,0)
+        # if action == "left":
+        #     self.pos -= (0,1)
+        # if action == "right":
+        #     self.pos += (0, 1)
 
 # Création de la grille test avec une récompense et quelques obstacles
 def create_grid():
-    grille = Matrix(5)
+    grille = Matrix(GRID_SIZE)
     # Placement de la récompense
     a = random.randint(0,4)
     b = random.randint(0, 4)
@@ -99,6 +142,13 @@ def create_grid():
         grille.m[x][y] = OBSTACLE
         obstacle_pos.append((x,y))
     return grille
+
+# Boucle du Jeu
+def update_grid():
+    AgentTest = Agent(0,0)
+    while not keyboard.is_pressed("esc"):
+        pass
+
 
 # Programme Principal
 GrilleJeu = create_grid()
