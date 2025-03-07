@@ -1,6 +1,7 @@
 # Librairies
 import random
 import keyboard
+import time
 
 # Dimension de la grille
 GRID_SIZE = 5
@@ -31,7 +32,6 @@ class Matrix:
 class Agent:
     def __init__(self, starting_pos):
         self.pos = starting_pos
-        self.valid_move = []
 
     # Fonction donnant les cases valides internes à la grille (exclus le débordement mais pas les cases à obstacles)
     def get_adjacent_positions(self):
@@ -43,7 +43,7 @@ class Agent:
                  "right": (r, c + 1)}
 
         # Filtrer les déplacements valides
-        self.valid_move = {direction: pos for direction, pos in moves.items()
+        possible_move = {direction: pos for direction, pos in moves.items()
                            if 0 <= pos[0] < GRID_SIZE and 0 <= pos[1] < GRID_SIZE}
 
         # # Filtrer les positions valides
@@ -56,15 +56,15 @@ class Agent:
         # if self.pos + (0,1) != OBSTACLE:
         #     self.valid_move.append("right")
 
-        return self.valid_move
+        return possible_move
 
     # Fonction renvoyant la présence ou non d'obstacles et de récompense sur les ces adjacentes
     def perceive(self, grid):
         perceptions = {}
-        adjacent_positions = self.get_adjacent_positions()
+        possible_move = self.get_adjacent_positions()
 
-        for direction, pos in adjacent_positions.items():
-            perceptions[direction] = grid[pos[0]][pos[1]]
+        for direction, pos in possible_move.items():
+            perceptions[direction] = grid.m[pos[0]][pos[1]]
 
         return perceptions
 
@@ -74,11 +74,11 @@ class Agent:
             if cell == REWARD:
                 return direction
 
-        available_moves = [direction for direction, cell in perceptions.items()
+        valid_moves = [direction for direction, cell in perceptions.items()
                            if cell == EMPTY]
 
-        if available_moves:
-            return random.choice(available_moves)
+        if valid_moves:
+            return random.choice(valid_moves)
         else:
             return None
 
@@ -144,7 +144,6 @@ def create_grid():
 
 # Affichage dynamique de la grille
 def print_grid(grille, agentPos):
-    print("Grille du Jeu :")
     for i in range(GRID_SIZE):
         row = ""
         for j in range(GRID_SIZE):
@@ -163,7 +162,20 @@ def update_grid():
 
 # Programme Principal
 GrilleJeu, REWARD_POS, OBSTACLE_POS = create_grid()
-print_grid(GrilleJeu, (0,0))
+AgentTest = Agent((0,0))
 
+print_grid(GrilleJeu, AgentTest.pos)
 print(f"Position de la récompense : {REWARD_POS}")
 print(f"Position des obstacles : {OBSTACLE_POS}")
+
+while not(REWARD_POS[0] == AgentTest.pos):
+    time.sleep(3)
+    AgentTest.get_adjacent_positions()
+    Vision = AgentTest.perceive(GrilleJeu)
+    Action = AgentTest.decide_action(Vision)
+    AgentTest.move(Action)
+    print_grid(GrilleJeu, AgentTest.pos)
+    print(REWARD_POS[0])
+    print(AgentTest.pos)
+
+print("Fin du Jeu !")
