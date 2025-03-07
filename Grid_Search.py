@@ -11,10 +11,6 @@ OBSTACLE = "O"
 REWARD = "R"
 AGENT = "A"
 
-# Position des éléments
-reward_pos = []
-obstacle_pos = []
-
 # Création de la matrice tableau
 class Matrix:
     # Initialisation d'une variable de type Matrix
@@ -125,34 +121,49 @@ class Agent:
 # Création de la grille test avec une récompense et quelques obstacles
 def create_grid():
     grille = Matrix(GRID_SIZE)
+    REWARD_POS = []
+    OBSTACLE_POS = []
+
     # Placement de la récompense
     a = random.randint(0,4)
     b = random.randint(0, 4)
     grille.m[a][b] = REWARD
-    reward_pos.append((a,b))
+    REWARD_POS.append((a, b))
 
     # Placement des Obstacles
     for i in range(15):
         x = a
         y = b
-        while (x,y) in reward_pos:
+        while (x,y) in REWARD_POS:
             x = random.randint(0, 4)
             y = random.randint(0, 4)
 
         grille.m[x][y] = OBSTACLE
-        obstacle_pos.append((x,y))
-    return grille
+        OBSTACLE_POS.append((x, y))
+    return grille, REWARD_POS, OBSTACLE_POS
+
+# Affichage dynamique de la grille
+def print_grid(grille, agentPos):
+    print("Grille du Jeu :")
+    for i in range(GRID_SIZE):
+        row = ""
+        for j in range(GRID_SIZE):
+            if(i,j) == agentPos:
+                row += f"{AGENT} \t"
+            else:
+                row += f"{grille.m[i][j]} \t"
+        print(row)
+    print()
 
 # Boucle du Jeu
 def update_grid():
-    AgentTest = Agent(0,0)
+    AgentTest = Agent((0,0))
     while not keyboard.is_pressed("esc"):
         pass
 
-
 # Programme Principal
-GrilleJeu = create_grid()
-GrilleJeu.afficher_matrice()
+GrilleJeu, REWARD_POS, OBSTACLE_POS = create_grid()
+print_grid(GrilleJeu, (0,0))
 
-print(reward_pos)
-print(obstacle_pos)
+print(f"Position de la récompense : {REWARD_POS}")
+print(f"Position des obstacles : {OBSTACLE_POS}")
